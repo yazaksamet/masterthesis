@@ -1,0 +1,89 @@
+---
+title: "Standardize Yahoo A1"
+output:
+  html_document:
+    df_print: paged
+---
+
+set working space, add pre defined functions and plot sample data
+
+```{r}
+
+setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
+
+originalData = read.csv(file="..\\..\\data\\yahoo\\A1Benchmark\\real_1.csv", header=TRUE, sep=",")
+tsData = ts(originalData$value)
+
+anomalyRecords = originalData[originalData$is_anomaly == 1,];
+
+plot.ts(tsData)
+points(data.frame(anomalyRecords$timestamp, anomalyRecords$value), col="red", pch=17)
+
+
+```
+
+
+get all data, center araound the mean, merge in one file
+
+```{r}
+
+fileCount = 67
+
+completeData = data.frame(matrix(ncol = 4, nrow = 0))
+colnames(completeData) <- c("timestamp", "value", "is_anomaly", "file_number")
+
+localMaxMin = data.frame(matrix(ncol = 3, nrow = 0))
+colnames(localMaxMin) <- c("minima","maxima", "file_number")
+
+for (i in 1:fileCount) {
+  filePath = paste0("..\\..\\data\\yahoo\\A1Benchmark\\real_", i, ".csv")
+  fileData = read.csv(file=filePath, header=TRUE, sep=",")
+  fileData["value"] = scale(fileData["value"], center=TRUE, scale=TRUE)
+  
+  currentMaxTime = nrow(completeData["timestamp"])
+  fileData["timestamp"] = fileData["timestamp"] + currentMaxTime
+  completeData = rbind(completeData, cbind(fileData, file_number = i))
+  
+  localMaxMin = rbind(localMaxMin, cbind(minima = min(fileData["value"]), maxima = max(fileData["value"]), file_number = i))
+}
+
+```
+
+
+scale data with avarage (max + min) / 2
+
+```{r}
+avgMin = mean(localMaxMin$minima)
+avgMax = mean(localMaxMin$maxima)
+
+scaleFactor = (avgMax + avgMin) / 2
+
+completeData["value"] = completeData["value"] * scaleFactor
+
+```
+
+
+plot complete data
+
+```{r}
+
+plot.ts(ts(completeData$value))
+anomalyRecords = completeData[completeData$is_anomaly == 1,];
+points(data.frame(anomalyRecords$timestamp, anomalyRecords$value), col="red", pch=17)
+
+```
+
+
+plot 1500 record block
+
+```{r}
+
+blockData = completeData[completeData$timestamp > 1500 & completeData$timestamp < 3000,]
+blockDataAnomalies = blockData[blockData$is_anomaly == 1,]
+
+plot.ts(ts(blockData$value))
+points(data.frame(blockDataAnomalies$timestamp - 1500, blockDataAnomalies$value), col="red", pch=17)
+
+
+```
+

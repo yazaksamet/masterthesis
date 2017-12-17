@@ -1,0 +1,13 @@
+https://medium.com/netflix-techblog/rad-outlier-detection-on-big-data-d6b0494371cc
+
+https://msdn.microsoft.com/en-us/library/mt775197.aspx
+
+https://www.datanami.com/2017/04/19/inside-anodots-anomaly-detection-system-time-series-data/
+
+https://www.infoq.com/articles/deep-learning-time-series-anomaly-detection
+
+https://www.anodot.com/blog/how-to-check-for-potential-outliers-in-ecommerce-time-series-data/
+
+https://datamarket.com/data/list/?q=provider:tsdl
+
+http://a-little-book-of-r-for-time-series.readthedocs.io/en/latest/src/timeseries.html

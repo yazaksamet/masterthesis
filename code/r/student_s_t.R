@@ -1,0 +1,5 @@
+x <- seq(-5, 5, length=1000)
+standnorm <- dnorm(x, sd= 1, mean=0)
+student <- dt(x, df=4)
+plot(x,standnorm,type="l",ylab="Density",col="red",lty=1,lwd=3,main="Standard normal (red) and Student's t (blue)")
+lines(x,student,type="l",ylab="Density",col="blue",lty=1,lwd=3)

@@ -1,0 +1,79 @@
+---
+title: "Window Based Anomaly Detection"
+output:
+  html_document:
+    df_print: paged
+---
+
+Algorithm of this window based anomaly detection on time series data:
+
+- Set a window size. (integer)
+- Find a subsequence of data with leghth of window size.
+- Predict value of current data item using records in subsequence 
+- Based on predicted value, find confidence interval. Confidence interval is a range that predicted value most probably be between these boundries.
+- If actual value of current data item in confidence interval, it is nonanomalous, if it is not, anomalous.
+
+Define variables 
+
+```{r}
+
+windowSize = 5
+windowWeight = seq(1, windowSize, length=windowSize)
+
+```
+
+Load standardized data
+
+```{r}
+setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
+completeData = read.csv(file="..\\..\\data\\yahoo\\A1Benchmark\\real_full_standard.csv", header=TRUE, sep=",")
+completeData = cbind(completeData, predicted_value = 0, conf_low = 0, conf_high = 0, predicted_anomaly = 0)
+
+```
+
+Predict time series data values using windows
+
+```{r}
+
+print("Prediction Start:")
+print(date())
+
+startIndex = (windowSize+1)
+endIndex = dim(completeData)[1]
+
+windowEndIndex = windowSize
+windowStartIndex = 1
+  
+windowRecords = completeData[completeData$timestamp >= windowStartIndex & completeData$timestamp <= windowEndIndex,];
+
+for (i in startIndex:endIndex) {
+  if (i != startIndex) {
+    windowRecords = rbind(windowRecords[windowRecords$timestamp > (i-windowSize-1),], completeData[i-1,])
+  }
+  
+  predictedValue = sum(windowRecords$value * windowWeight) / windowSize;
+  studentsTValue <- qt(0.99, (windowSize-1)) 
+  standardDeviation = sd(windowRecords$value)
+  confidenceInterval = studentsTValue * standardDeviation * sqrt(1+(1/windowSize))
+  
+  completeData[i,"predicted_value"] = predictedValue
+  completeData[i,"conf_low"] = predictedValue - confidenceInterval
+  completeData[i,"conf_high"] = predictedValue + confidenceInterval
+  
+  predictedAnomaly = if (completeData[i,"value"] <= completeData[i,"conf_high"] & completeData[i,"value"] >= completeData[i,"conf_low"]) 0 else 1
+  
+  completeData[i,"predicted_anomaly"] = predictedAnomaly
+  
+  #if (predictedAnomaly == 1) {
+  #  completeData[i,"predicted_value"] = completeData[i,"value"]
+  #  completeData[i,"value"] = predictedValue
+  #}
+  
+}
+
+print("Prediction End:")
+print(date())
+
+```
+
+

@@ -5,7 +5,22 @@ output:
     df_print: paged
 ---
 
-set working space, add pre defined functions and plot sample data
+Algorithm:
+
+- Load each files individually
+- Scale every file, center "Value" around file mean
+- Store minimum and maximum value of each file
+- Merge all files into one data frame
+- Scale "Value" in all data frame with scale factor:
+
+  factor = (mean(fileMinimum) + mean(fileMaximum)) / 2
+  
+  where fileMinimum and fileMaximum are values from step 3.
+
+
+---
+
+Set working space, add pre defined functions and plot sample data
 
 ```{r}
 
@@ -16,14 +31,15 @@ tsData = ts(originalData$value)
 
 anomalyRecords = originalData[originalData$is_anomaly == 1,];
 
-plot.ts(tsData)
+plot.ts(tsData, xlab="Timestamp", ylab="Value")
 points(data.frame(anomalyRecords$timestamp, anomalyRecords$value), col="red", pch=17)
 
+legend("topleft", c("Anomolous Points", "Non-Anomolous Points"), col = c("red", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1), pch=c(17,20))
 
 ```
 
 
-get all data, center araound the mean, merge in one file
+Get all data, center araound the mean, merge in one file
 
 ```{r}
 
@@ -54,7 +70,7 @@ for (i in 1:fileCount) {
 ```
 
 
-scale data with avarage (max + min) / 2
+Scale data with avarage (max + min) / 2
 
 ```{r}
 avgMin = mean(localMaxMin$minima)
@@ -88,23 +104,26 @@ plot complete data
 
 completeData = read.csv(file="..\\..\\data\\yahoo\\A1Benchmark\\real_full_standard.csv", header=TRUE, sep=",")
 
-plot.ts(ts(completeData$value))
+plot.ts(ts(completeData$value), xlab="Timestamp", ylab="Value")
 anomalyRecords = completeData[completeData$is_anomaly == 1,];
 points(data.frame(anomalyRecords$timestamp, anomalyRecords$value), col="red", pch=17)
+
+legend("topleft", c("Anomolous Points", "Non-Anomolous Points"), col = c("red", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1), pch=c(17,20))
 
 ```
 
 
-plot 1500 record block
+plot records between 1500 - 3000 block
 
 ```{r}
 
 blockData = completeData[completeData$timestamp > 1500 & completeData$timestamp < 3000,]
 blockDataAnomalies = blockData[blockData$is_anomaly == 1,]
 
-plot.ts(ts(blockData$value))
+plot.ts(ts(blockData$value), xlab="Timestamp", ylab="Value")
 points(data.frame(blockDataAnomalies$timestamp - 1500, blockDataAnomalies$value), col="red", pch=17)
 
+legend("topleft", c("Anomolous Points", "Non-Anomolous Points"), col = c("red", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1), pch=c(17,20))
 
 ```
 

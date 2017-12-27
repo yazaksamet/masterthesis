@@ -1,78 +1,225 @@
 ---
-title: "Window Based Anomaly Detection"
+title: "Sliding Window Based Anomaly Detection"
 output:
   html_document:
     df_print: paged
 ---
 
-Algorithm of this window based anomaly detection on time series data:
+Algorithm of this sliding window based anomaly detection on time series data:
 
 - Set a window size. (integer)
-- Find a subsequence of data with leghth of window size.
-- Predict value of current data item using records in subsequence 
-- Based on predicted value, find confidence interval. Confidence interval is a range that predicted value most probably be between these boundries.
-- If actual value of current data item in confidence interval, it is nonanomalous, if it is not, anomalous.
+- Iterate fixed sized window through whole data set (94836 records)
+- For each window, calculate confidence interval (CI) as:
+  
+    CI = mean +(-) (im * sd) / sqrt(windowSize)
+    
+    where mean is mean, sd is standard deviation of sliding window. im is a hyper parameter that is used to tune success of model.
+  
+- If next value out of window is outside of confidence interval, mark as anomolous, if not non-anomolous. 
 
-Define variables 
+Define hyperParameters :
 
 ```{r}
 
-windowSize = 5
-windowWeight = seq(1, windowSize, length=windowSize)
+# windows size parameters, start and end size can be different if one wants to repeat experiment with different sizes 
+windowSizeStart = 17
+windowSizeEnd = 17
+
+intervalMultiplier = 25 # it is used to adjust model success
 
 ```
 
-Load standardized data
+Define set to store experiment results, that will be used to analyze statistical behaviour of model.
+
+```{r}
+
+resultSet = data.frame(matrix(ncol = 6, nrow = 0))
+colnames(resultSet) <- c("windowSize", "IntervalMultiplier", "tp", "fp", "tn", "fn")
+
+```
+
+
+Load data which is merged and standardized version of Yahoo A1Benchmark dataset including 67 files.  
 
 ```{r}
 setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
-completeData = read.csv(file="..\\..\\data\\yahoo\\A1Benchmark\\real_full_standard.csv", header=TRUE, sep=",")
-completeData = cbind(completeData, predicted_value = 0, conf_low = 0, conf_high = 0, predicted_anomaly = 0)
+completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard.csv", header=TRUE, sep=",")
+completeData = cbind(completeData, predicted_value = 0, conf_low = 0, conf_high = 0, predicted_anomaly = 0, calculation_value = completeData$value)
 
 ```
 
-Predict time series data values using windows
+
+Define helper functions:
+
+```{r}
+
+getConfidenceInterval <- function(studentTIndex, windowSize, windowRecords) {
+  standardDeviation = sd(windowRecords$calculation_value)
+  mn = mean(windowRecords$calculation_value)
+  diff = (intervalMultiplier*standardDeviation)/sqrt(windowSize)
+  
+  return (data.frame(mn-diff,mn+diff))
+}
+
+```
+
+
+
+Calculate confidence interval and model results.
 
 ```{r}
 
 print("Prediction Start:")
 print(date())
 
-startIndex = (windowSize+1)
-endIndex = dim(completeData)[1]
-
-windowEndIndex = windowSize
-windowStartIndex = 1
+for (windowSize in windowSizeStart:windowSizeEnd) {
+  windowWeight = seq(1, windowSize, length=windowSize)
+  print(paste0("windowSize:", windowSize))
   
-windowRecords = completeData[completeData$timestamp >= windowStartIndex & completeData$timestamp <= windowEndIndex,];
-
-for (i in startIndex:endIndex) {
-  if (i != startIndex) {
-    windowRecords = rbind(windowRecords[windowRecords$timestamp > (i-windowSize-1),], completeData[i-1,])
-  }
-  
-  predictedValue = sum(windowRecords$value * windowWeight) / windowSize;
-  studentsTValue <- qt(0.99, (windowSize-1)) 
-  standardDeviation = sd(windowRecords$value)
-  confidenceInterval = studentsTValue * standardDeviation * sqrt(1+(1/windowSize))
-  
-  completeData[i,"predicted_value"] = predictedValue
-  completeData[i,"conf_low"] = predictedValue - confidenceInterval
-  completeData[i,"conf_high"] = predictedValue + confidenceInterval
-  
-  predictedAnomaly = if (completeData[i,"value"] <= completeData[i,"conf_high"] & completeData[i,"value"] >= completeData[i,"conf_low"]) 0 else 1
-  
-  completeData[i,"predicted_anomaly"] = predictedAnomaly
-  
-  #if (predictedAnomaly == 1) {
-  #  completeData[i,"predicted_value"] = completeData[i,"value"]
-  #  completeData[i,"value"] = predictedValue
-  #}
-  
+  tp = 0; tn = 0; fp = 0; fn = 0
+    
+  startIndex = (windowSize+1)
+  endIndex = dim(completeData)[1]
+    
+  windowEndIndex = windowSize
+  windowStartIndex = 1
+      
+  windowRecords = completeData[completeData$timestamp >= windowStartIndex & completeData$timestamp <= windowEndIndex,];
+    
+    for (i in startIndex:endIndex) {
+      completeData[i,"predicted_value"] = 0
+      completeData[i,"conf_low"] = 0
+      completeData[i,"conf_high"] = 0
+      completeData[i,"predicted_anomaly"] = 0
+      
+      if (i != startIndex) {
+        windowRecords = rbind(windowRecords[windowRecords$timestamp > (i-windowSize-1),], completeData[i-1,])
+      }
+      
+      windowForecast = getConfidenceInterval(0, windowSize, windowRecords);
+      
+      completeData[i,"predicted_value"] = completeData[i,"value"]
+      completeData[i,"conf_low"] = windowForecast[1,1]
+      completeData[i,"conf_high"] = windowForecast[1,2]
+      
+      predictedAnomaly = if (completeData[i,"value"] <= completeData[i,"conf_high"] & completeData[i,"value"] >= completeData[i,"conf_low"]) 0 else 1
+      
+      completeData[i,"predicted_anomaly"] = predictedAnomaly
+      
+      if (completeData[i,"is_anomaly"] == 1) {
+        #completeData[i,"predicted_value"] = completeData[i,"value"]
+        lowerDistance = abs(completeData[i,"value"] - completeData[i,"conf_low"])
+        upperDistance = abs(completeData[i,"value"] - completeData[i,"conf_high"])
+        completeData[i,"calculation_value"] = (completeData[i,"conf_high"] + completeData[i,"conf_low"])/2
+      }
+      
+      if (completeData[i,"is_anomaly"] == 1 & predictedAnomaly == 1) {
+        tp = tp + 1;
+      } else if (completeData[i,"is_anomaly"] == 1 & predictedAnomaly == 0) {
+        fn = fn + 1
+      } else if (completeData[i,"is_anomaly"] == 0 & predictedAnomaly == 1) {
+        fp = fp + 1
+      } else if (completeData[i,"is_anomaly"] == 0 & predictedAnomaly == 0) {
+        tn = tn + 1
+      }
+      
+    }
+    
+    resultSet = rbind(resultSet, data.frame(windowSize, intervalMultiplier, tp, fp, tn, fn))
+    print(paste0("tp:", tp, ", fp:", fp, ", tn:", tn, ", fn:", fn)) 
 }
-
 print("Prediction End:")
 print(date())
+
+```
+
+
+Print current experiment result set:
+
+```{r}
+resultSet
+
+```
+
+Print previous experiments' results:
+
+```{r}
+fullResultSet = read.csv(file="window_20171227.csv", header=TRUE, sep=",")
+
+fullResultSet = cbind(fullResultSet, 
+                      sensitivity = fullResultSet$tp / (fullResultSet$tp + fullResultSet$fn), 
+                      positivePredictive = fullResultSet$tp / (fullResultSet$tp + fullResultSet$fp), 
+                      specificity = fullResultSet$tn / (fullResultSet$tn + fullResultSet$fp), 
+                      negativePredictive = fullResultSet$tn / (fullResultSet$tn + fullResultSet$fn))
+
+fullResultSet
+```
+
+
+Plot sample parts of dataset:
+
+Green: True Positive (correctly identified anomaly) Records
+Yellow: False Negative (anomalies identified as non-anomolous) Records
+red: False Positive (non-anomolous records identified as anomaly)
+
+First 1500 records (1-1500):
+
+```{r}
+
+blockData = completeData[completeData$timestamp <= 1500,]
+tpAnomalies = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 1,]
+fnAnomalies = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 0,]
+fpAnomalies = blockData[blockData$is_anomaly == 0 & blockData$predicted_anomaly == 1,]
+
+plot.ts(ts(blockData$value), xlab="Timestamp", ylab="Value")
+points(data.frame(tpAnomalies$timestamp, tpAnomalies$value), col="green", pch=17)
+points(data.frame(fnAnomalies$timestamp, fnAnomalies$value), col="yellow", pch=17)
+points(data.frame(fpAnomalies$timestamp , fpAnomalies$value), col="red", pch=17)
+lines(data.frame(blockData$timestamp , blockData$conf_low), col="grey", pch=17)
+lines(data.frame(blockData$timestamp , blockData$conf_high), col="grey", pch=17)
+
+legend("topleft", c("True Positive", "False Negative", "False Positive", "Confidence Interval", "Standardized Data"), col = c("green", "yellow", "red", "grey", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1,1,1,1), pch=c(17,17,17,20,20))
+
+```
+
+
+Second 1500 records (1500-3000):
+
+```{r}
+blockData = completeData[completeData$timestamp > 1500 & completeData$timestamp <= 3000,]
+tpAnomalies = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 1,]
+fnAnomalies = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 0,]
+fpAnomalies = blockData[blockData$is_anomaly == 0 & blockData$predicted_anomaly == 1,]
+
+plot.ts(ts(blockData$value), xlab="Timestamp", ylab="Value")
+points(data.frame(tpAnomalies$timestamp - 1500, tpAnomalies$value), col="green", pch=17)
+points(data.frame(fnAnomalies$timestamp - 1500, fnAnomalies$value), col="yellow", pch=17)
+points(data.frame(fpAnomalies$timestamp - 1500, fpAnomalies$value), col="red", pch=17)
+lines(data.frame(blockData$timestamp - 1500, blockData$conf_low), col="grey", pch=17)
+lines(data.frame(blockData$timestamp - 1500, blockData$conf_high), col="grey", pch=17)
+
+legend("topleft", c("True Positive", "False Negative", "False Positive", "Confidence Interval", "Standardized Data"), col = c("green", "yellow", "red", "grey", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1,1,1,1), pch=c(17,17,17,20,20))
+
+```
+
+
+Third 1500 records (3000-4500):
+
+```{r}
+
+blockData = completeData[completeData$timestamp <= 4500 & completeData$timestamp > 3000,]
+tpAnomalies = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 1,]
+fnAnomalies = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 0,]
+fpAnomalies = blockData[blockData$is_anomaly == 0 & blockData$predicted_anomaly == 1,]
+
+plot.ts(ts(blockData$value), xlab="Timestamp", ylab="Value")
+points(data.frame(tpAnomalies$timestamp - 3000, tpAnomalies$value), col="green", pch=17)
+points(data.frame(fnAnomalies$timestamp - 3000, fnAnomalies$value), col="yellow", pch=17)
+points(data.frame(fpAnomalies$timestamp - 3000, fpAnomalies$value), col="red", pch=17)
+lines(data.frame(blockData$timestamp - 3000, blockData$conf_low), col="grey", pch=17)
+lines(data.frame(blockData$timestamp - 3000, blockData$conf_high), col="grey")
+
+legend("topleft", c("True Positive", "False Negative", "False Positive", "Confidence Interval", "Standardized Data"), col = c("green", "yellow", "red", "grey", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1,1,1,1), pch=c(17,17,17,20,20))
 
 ```
 

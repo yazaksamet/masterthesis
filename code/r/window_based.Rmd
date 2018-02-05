@@ -87,6 +87,11 @@ for (windowSize in windowSizeStart:windowSizeEnd) {
   windowRecords = completeData[completeData$timestamp >= windowStartIndex & completeData$timestamp <= windowEndIndex,];
     
     for (i in startIndex:endIndex) {
+      if (i %% 300 == 0) {
+        print(paste0("i:", i)) 
+        print(paste0("tp:", tp, ", fp:", fp, ", tn:", tn, ", fn:", fn))
+      }
+      
       completeData[i,"predicted_value"] = 0
       completeData[i,"conf_low"] = 0
       completeData[i,"conf_high"] = 0

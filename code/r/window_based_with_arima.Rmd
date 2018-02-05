@@ -1,0 +1,240 @@
+---
+title: "Sliding Window Based Anomaly Detection With Arima"
+output: html_notebook
+---
+
+```{r}
+
+windowSizeStart = 100
+windowSizeEnd = 100
+
+futurePredictionCount = 1
+predictionLevel = 99
+movingAverageNumber = 14
+
+confExpandFactor = 1.3
+
+
+setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
+
+library("forecast")
+library("tseries")
+library("ggplot2")
+
+
+getArimaModel <- function(blockData, predictionCount, level) {
+  #count_ts = ts(ts(blockData$value))
+  #blockData$clean_value = tsclean(count_ts)
+  #blockData$cnt_ma = ma(blockData$calculation_value, order=movingAverageNumber)
+  
+  count_ma = ts(na.omit(blockData$calculation_value))
+  
+  standardDeviation = sd(blockData$calculation_value)
+  mn = mean(blockData$calculation_value)
+  
+  auto_arima = auto.arima(count_ma, seasonal=FALSE)
+  fcast <- forecast(auto_arima, h=predictionCount, level=c(level))
+  fcastRes = data.frame(fcast)
+  
+  return(c(min(fcastRes$Lo.99), max(fcastRes$Hi.99), fcastRes[1,1], mn, standardDeviation))
+}
+
+# getArimaModel <- function(blockData, predictionCount, level) {
+#   count_ts = ts(ts(blockData$value))
+#   blockData$clean_value = tsclean(count_ts)
+#   blockData$cnt_ma = ma(blockData$clean_value, order=7)
+#   
+#   count_ma = ts(na.omit(blockData$clean_value), frequency=30)
+#   
+#   auto_arima = auto.arima(count_ma, seasonal=FALSE)
+#   fcast <- forecast(auto_arima, h=predictionCount, level=c(level))
+#   fcastRes = data.frame(fcast)
+#   
+#   return(c(min(fcastRes$Lo.99), max(fcastRes$Hi.99), fcastRes[1,1]))
+# }
+
+```
+
+
+
+```{r}
+
+completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard.csv", header=TRUE, sep=",")
+completeData = cbind(completeData, predicted_value = 0, 
+                     conf_low = 0, conf_high = 0, 
+                     predicted_anomaly = 0,
+                     mean = 0,
+                     standartDeviation = 0)
+
+completeData$ma_value = ma(completeData$value, order=movingAverageNumber)
+completeData$calculation_value = completeData$value
+
+```
+
+
+```{r}
+
+resultSet = data.frame(matrix(ncol = 8, nrow = 0))
+colnames(resultSet) <- c("windowSize", "FuturePredictionCount", "predictionLevel", "avgValue", "tp", "fp", "tn", "fn")
+
+```
+
+
+```{r}
+
+
+print("Prediction Start:")
+print(date())
+
+for (windowSize in windowSizeStart:windowSizeEnd) {
+  windowWeight = seq(1, windowSize, length=windowSize)
+  print(paste0("windowSize:", windowSize))
+  
+  tp = 0; tn = 0; fp = 0; fn = 0
+    
+  startIndex = (windowSize+1)
+  endIndex = dim(completeData)[1]
+    
+  windowEndIndex = windowSize
+  windowStartIndex = 1
+      
+  windowRecords = completeData[completeData$timestamp >= windowStartIndex & completeData$timestamp <= windowEndIndex,];
+    
+    for (i in startIndex:endIndex) {
+      if (i %% 300 == 0) {
+        print(paste0("i:", i)) 
+        print(paste0("tp:", tp, ", fp:", fp, ", tn:", tn, ", fn:", fn))
+      }
+      
+      completeData[i,"predicted_value"] = 0
+      completeData[i,"conf_low"] = 0
+      completeData[i,"conf_high"] = 0
+      completeData[i,"predicted_anomaly"] = 0
+      
+      if (!is.na(completeData[i, "ma_value"])) {
+        
+        if (i != startIndex) {
+          windowRecords = rbind(windowRecords[windowRecords$timestamp > (i-windowSize-1),], completeData[i-1,])
+        }
+        
+        windowForecast = getArimaModel(windowRecords, futurePredictionCount, predictionLevel);
+        
+        origianlConfLow = windowForecast[1];
+        origianlConfHigh = windowForecast[1];
+        
+        windowForecast[1] = windowForecast[1] - (abs(windowForecast[1] * confExpandFactor) + runif(1, 0, 1))
+        windowForecast[2] = windowForecast[2] + (abs(windowForecast[2] * confExpandFactor) + runif(1, 0, 1))
+        
+        completeData[i,"predicted_value"] = windowForecast[3]
+        completeData[i,"conf_low"] = windowForecast[1]
+        completeData[i,"conf_high"] = windowForecast[2]
+        completeData[i,"mean"] = windowForecast[4]
+        completeData[i,"standartDeviation"] = windowForecast[5]
+        
+        currentTimeValue = completeData[i,"value"]
+        currentAvgValue = completeData[i,"ma_value"]
+        
+        predictedAnomalyCurrent = if (currentTimeValue <= windowForecast[2] & currentTimeValue >= windowForecast[1]) 0 else 1;
+        
+        predictedAnomalyAvg = if (currentAvgValue <= windowForecast[2] & currentAvgValue >= windowForecast[1]) 0 else 1;
+        
+        #predictedAnomaly = if (predictedAnomalyAvg == 1 & predictedAnomalyCurrent == 1) 1 else 0;
+        predictedAnomaly = if (predictedAnomalyCurrent == 1) 1 else 0;
+        
+        if (predictedAnomaly == 1) {
+          #completeData[i,"calculation_value"] = currentAvgValue;
+          completeData[i,"calculation_value"] = (origianlConfLow + origianlConfHigh)/2
+        }
+        
+        completeData[i,"predicted_anomaly"] = predictedAnomaly
+        
+        if (completeData[i,"is_anomaly"] == 1 & predictedAnomaly == 1) {
+          tp = tp + 1;
+        } else if (completeData[i,"is_anomaly"] == 1 & predictedAnomaly == 0) {
+          fn = fn + 1
+        } else if (completeData[i,"is_anomaly"] == 0 & predictedAnomaly == 1) {
+          fp = fp + 1
+        } else if (completeData[i,"is_anomaly"] == 0 & predictedAnomaly == 0) {
+          tn = tn + 1
+        }
+      }
+    }
+    
+    resultSet = rbind(resultSet, data.frame(windowSize, futurePredictionCount, predictionLevel, movingAverageNumber, tp, fp, tn, fn))
+    print(paste0("tp:", tp, ", fp:", fp, ", tn:", tn, ", fn:", fn)) 
+}
+print("Prediction End:")
+print(date())
+
+
+```
+
+```{r}
+
+resultSet = cbind(resultSet, 
+      recall = (resultSet$tp / (resultSet$tp + resultSet$fn)),
+      precision = resultSet$tp / (resultSet$tp + resultSet$fp)
+)
+
+resultSet = cbind(resultSet, f1_score = 2 * (resultSet$precision * resultSet$recall) / (resultSet$precision + resultSet$recall))
+
+```
+
+```{r}
+blockData = completeData[completeData$timestamp <= 1500,]
+
+confExpandFactor = 0.0
+
+blockData$conf_low_exp = blockData$conf_low - abs(confExpandFactor * blockData$conf_low)
+blockData$conf_high_exp = blockData$conf_high + abs(confExpandFactor * blockData$conf_high)
+
+```
+
+
+
+```{r}
+
+
+blockData$predicted_anomaly_exp = 0
+
+blockData <- within(blockData, predicted_anomaly_exp[conf_low_exp != 0 & (value < conf_low_exp | value > conf_high_exp)] <- 1)
+
+tp_exp = nrow(blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly_exp == 1,])
+tn_exp = nrow(blockData[blockData$is_anomaly == 0 & blockData$predicted_anomaly_exp == 0,])
+fp_exp = nrow(blockData[blockData$is_anomaly == 0 & blockData$predicted_anomaly_exp == 1,])
+fn_exp = nrow(blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly_exp == 0,])
+
+recall_exp = (tp_exp / (tp_exp + fn_exp))
+precision_exp = tp_exp / (tp_exp + fp_exp)
+f1_exp = 2 * (precision_exp * recall_exp) / (precision_exp + recall_exp)
+
+tp_exp
+tn_exp
+fp_exp
+fn_exp
+
+f1_exp
+
+```
+
+
+```{r}
+blockData = completeData[completeData$timestamp <= 25000,]
+plotData = blockData[blockData$timestamp <= 25000 & blockData$timestamp >= 9000,]
+
+fpData = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 0,]
+anomaly_points = plotData[plotData$is_anomaly == 1,]
+
+#blockData$ma_value = ma(blockData$value, order=15)
+
+ggplot() +
+  geom_line(data = plotData, aes(x = timestamp, y = value, colour = "Original")) +
+  geom_line(data = plotData, aes(x = timestamp, y = conf_low, colour = "conf_low_exp"))  +
+  geom_line(data = plotData, aes(x = timestamp, y = conf_high, colour = "conf_high_exp"))  +
+  #geom_line(data = plotData, aes(x = timestamp, y = predicted_value, colour = "predicted_value"))  +
+  #geom_line(data = plotData, aes(x = timestamp, y = calculation_value, colour = "calculation_value"))  +
+  geom_point(data = anomaly_points, aes(x = timestamp, y = value, colour = "anomaly")) + 
+  ylab('Count')
+
+```
+

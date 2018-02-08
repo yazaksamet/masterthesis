@@ -1,0 +1,11 @@
+Anomaly detection ile ilk kodlama yapýldý. k-NN algoritmasý ile yahoo A1Benchmark seti kullanýldý.
+
+Supervised/semi supervised yöntemi.
+
+Proximity: eucledean 
+
+K deðerleri: 1-6 a kadar.
+
+Diðer araþtýrýlacak proximity hesaplamalarý: dynamic time warping, periodic curve anomaly detection, nLCS (longest common subsequence)
+
+Uygulanacak diðer setler: Yahoo A3Benchmark, A2Benchmark

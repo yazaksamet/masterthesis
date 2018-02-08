@@ -1,0 +1,4 @@
+yahoo verisine standardization uygulandý. 
+Yöntem:
+	center araound the mean, merge in one file
+	scale data with avarage (max + min) / 2

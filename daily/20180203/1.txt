@@ -1,0 +1,12 @@
+Arima ile anomaly detection istediðimiz sonuçlarý vermedi. Bu modelde en önemli nokta, anomaly olarak tespit edilmiþ bir verinin yerine arima model e hangi deðeri göndereceðimiz. Çünkü gönderdiðimiz deðere göre arima bir tahmin üretiyor ve o tahmine göre confidence interval oluþturuyor. 
+
+Anomaly yerine gönderdiðimiz deðerler; mean, predicted value, anomaly point, avarage of confidence interval, moving avarage value. En iyi sonucu "avarage of confidence interval" verdi. Ýyi sonuç verebilmesi için, arima dan gelen confidence a random bir deðer ekledik. Bu random deðer, arima nýn tek düze devam eden kayýtlarda çok dar ürettiði confidence ý biraz geniþletmesine ve false positive oranýný azaltmamýza yaradý.
+
+Daha önce sadece istatistiksel hesaplamalarla baþarýlý sonuç aldýðýmýz yönteme göre arima nýn baþarýsýz olma sebebi false positive kayýtlarýnýn sayýsý artýnca arima modelde baþýrýsýzlýk artýyor. Arima'da baþarýlý olabilmek için false positive oranýný aþaðý çekmek gerekiyor. Bu veri setinde çok farklý anomaly türleri olduðu için arima her birine adapte olamýyor. Bu da false positive oranýný artýrýyor. 
+
+Arima'nýn bir önceki istatistiksel yöntemden güçlü tarafý, point anomaly leri iyi yakalamasý. Bu tür anomaly lerde false positive ve false negative oraný çok düþük. 
+
+Arima'nýn bir önceki istatistiksel yöntemden zayýf tarafý, context ve conceptual anomaly türlerinde (arka arkaya bir çok kaydýn anomaly olmasý) baþarý oraný düþük. Ayrýca çok daha fazla kaynak tüketiyor. Arima model in auto bulunmasý istenirse çok daha complex bir yapý oluþuyor, ve diðer yönteme göre 10-15 kat daha yavaþ çalýþýyor.
+
+
+Bu model daha iyi nasýl yapýlabilir? Confidence intarval verinin farklý noktarlarýna farklý uygulayabiliriz, bu yöntem bir learning uygulamasý olabilir. Moving avarage verisi üzerinden çalýþabiliriz, moving avarage yaptýðýmýzda veri biraz daha smooth olabilir, eðer anomaly ler kaybolmazsa biraz daha iyi veri üzerinden çalýþma þansýný yakalayabiliriz.

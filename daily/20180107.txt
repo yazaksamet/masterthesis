@@ -1,0 +1,20 @@
+Chatfield 2004;
+
+(i) removing the trend and seasonality in order to achieve a stationary time series, 
+(ii) fitting an auto-regressive moving average (ARMA) model to the stationary time series
+(iii) predicting future values using the ARMA model.
+
+
+(1) How should x(s, t) be dealt with after identifying it as a normal observation or as
+an outlier?
+(2) How can errors and events be distinguished?
+(3) When and how should the time-series model be updated?
+
+Median smoothing (Basu and Meckesheimer 2007)
+was used to replace obvious errors and missing data within a smoothing window, prior to
+undertaking the above analysis.
+
+
+Araþtýrýlacak:
+
+Recurrent neural network, twitter anomaly detection library.

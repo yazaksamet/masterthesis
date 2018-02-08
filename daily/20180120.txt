@@ -1,0 +1,17 @@
+non-stationary; mean and variance change over time.
+
+A series is said to be stationary when its mean, variance, and autocovariance are time invariant.
+
+arima-> box jenkins model
+
+Seasonal component refers to fluctuations in the data related to calendar cycles. For example, more people might be riding bikes in the summer and during warm weather, and less during colder months. Usually, seasonality is fixed at some number; for instance, quarter or month of the year.
+
+Trend component is the overall pattern of the series: Is the number of bikes rented increasing or decreasing over time?
+
+Cycle component consists of decreasing or increasing patterns that are not seasonal. Usually, trend and cycle components are grouped together. Trend-cycle component is estimated using moving averages.
+
+Finally, part of the series that can't be attributed to seasonal, cycle, or trend components is referred to as residual or error.
+
+The process of extracting these components is referred to as decomposition.
+
+augmented Dickey-Fuller (ADF) test

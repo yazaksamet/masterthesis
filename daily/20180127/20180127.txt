@@ -1,0 +1,8 @@
+moving average ile arima ve anomaly detection
+
+moving avarege ile anomaly detection þu an tam yapamadým. Çünkü moving average yapýnca, anomaly etrafýndaki sayýlarýn deðerleri de çok artýyor. Asýl anomaly i kaçýrýp, ondan sonra gelen kaydý anomaly olarak set edilme olasýlýðý yüksek. 
+
+Moving avarage kullanýlmak istenirse, prediction deðerini direk time series verisi ile karþýlaþtýrmamak gerekiyor. Çok fazla iniþli çýkýþlý olan veride false positive oraný artýyor. Bunun da sebebi avarage alýnmýþ veri daha smooth olduðu için gerçek veri kadar iniþli çýkýþlý olmuyor. 
+
+
+Sadece gerçek veriyi arima modelde kullanýnca bir sonuç yakalayabiliriz gibi. ama bunu yaparken karþýlaþtýðýmýz bazý problemler var. Anomaly olarak tespit ettiðimiz verinin yerine arima ya ne göndereceðiz? Arima nýn bir önceki adýmda tahmin ettiði veriyi gönderirsek, ani düþüþ veya ani çýkýþ anlarýný anomaly olarak tespit edip, ondan sonra gelen deðerlerini hepsini anomaly olarak set edebiliyoruz (2.png, 3.png). Confidence interval olarak hesapladýðýmýz deðerleri gönderirsek, arka arkaya gelen anomaly lerde interval çok gemiþleyebiliyor, dolayýsýyla devamýný anomaly olarak set edemiyoruz, false negative rate imiz artýyor (1.png). Bir önceki bölümün ortalamasýný gönderebiliriz, onun nasýl olacaðýný kontrol edeceðiz. 

@@ -1,0 +1,3 @@
+window based approches for time series anomaly detection:
+	-knn: set a fixed window size and inside the window, calculate anomaly score. Window can be left or left/right sided. Left sided means online, left and right sided means historic data. IsAnomaly detected calculating PCI, Prediction Confidence Interval.
+	-calculate confidence bound. confidence bound is range of nonanomaly points.

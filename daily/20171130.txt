@@ -1,0 +1,12 @@
+anomaly types in time series : point, contextual, collective anomaly, rule-based?
+
+time series data type: univariate, multivariate, (a)synchronous, (a)periodic, symbolic - kumar
+
+time series anomaly detection techniques: window, proximity(kernel), prediction, hidden markov, segmentation - kumar
+
+Proximity measures: Longest common subsequence, Dynamic time warping, eucledean
+
+
+
+Knn ve clustering'de hangi seri arasýnda uzunluk alacaðýz? Nasýl alacaðýz?
+Real Time? Batch?

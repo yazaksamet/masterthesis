@@ -1,0 +1,10 @@
+The Kalman Anomaly detection Analytic works in the following manner:
+
+Observations are read in as an input vector that represents data for a single variable (sensor).
+The Kalman-filter algorithm is applied to filter noise and produce smooth values.
+For each of the series – raw data and filtered – statistical parameters are calculated.
+Presence of anomaly is checked for by using a combination of these statistical values.
+The output generated is a vector of (0s and 1s) with the same number of elements as the input observation matrix.
+If an anomaly is found at a point it is given a value of 1 else the point has 0 value.
+
+ 

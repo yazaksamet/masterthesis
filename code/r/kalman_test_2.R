@@ -1,5 +1,5 @@
-windowSizeStart = 100
-windowSizeEnd = 400
+windowSizeStart = 200
+windowSizeEnd = 200
 
 measureVariance = 0.001
 variance = 1e-7
@@ -17,7 +17,7 @@ resultSet = data.frame(matrix(ncol = 8, nrow = 0))
 colnames(resultSet) <- c("windowSize", "intervalMultiplier", "variance", "measureVariance", "tp", "fp", "tn", "fn")
 
 setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
-completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard.csv", header=TRUE, sep=",")
+completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard_periodic.csv", header=TRUE, sep=",")
 completeData = cbind(completeData, predicted_value = 0, conf_low = 0, conf_high = 0, predicted_anomaly = 0)
 completeData$calculation_value = completeData$value
 
@@ -36,7 +36,7 @@ getConfidenceInterval <- function(windowSize, windowRecords) {
     Pminus[i] = errorPost[i-1] + variance
     
     gain[i] = Pminus[i] / ( Pminus[i] + measureVariance )
-    posterior[i] = priori[i] + gain[i] * (windowRecords[i, "value"] - priori[i])
+    posterior[i] = priori[i] + gain[i] * (windowRecords[i, "calculation_value"] - priori[i])
     errorPost[i] = ( 1 - gain[i] ) * Pminus[i]
   }
   
@@ -92,12 +92,16 @@ for (windowSize in seq(windowSizeStart, windowSizeEnd, 50)) {
     completeData[i,"conf_low"] = windowForecast[1,1]
     completeData[i,"conf_high"] = windowForecast[1,2]
     
-    predictedAnomaly = if (completeData[i,"value"] <= completeData[i,"conf_high"] & completeData[i,"value"] >= completeData[i,"conf_low"]) 0 else 1
+    predictedAnomaly = 
+      if ((completeData[i,"value"] <= completeData[i,"conf_high"] 
+          & completeData[i,"value"] >= completeData[i,"conf_low"])
+          #| completeData[i,"isPeriodic"] == 1
+          ) 0 else 1
     
     completeData[i,"predicted_anomaly"] = predictedAnomaly
     
     if (predictedAnomaly == 1) {
-      completeData[i,"calculation_value"] = (completeData[i,"conf_high"] + completeData[i,"conf_low"])/2
+      completeData[i,"calculation_value"] = windowForecast[1,3]#(completeData[i,"conf_high"] + completeData[i,"conf_low"])/2
     }
     
     if (completeData[i,"is_anomaly"] == 1 & predictedAnomaly == 1) {
@@ -115,33 +119,42 @@ for (windowSize in seq(windowSizeStart, windowSizeEnd, 50)) {
 }
 
 
-recall = (tp / (tp + fn))
-precision = tp / (tp + fp)
-f1 = 2 * (precision * recall) / (precision + recall)
+ recall = (tp / (tp + fn))
+ precision = tp / (tp + fp)
+ f1 = 2 * (precision * recall) / (precision + recall)
+
+ periodic_anomaly = completeData[completeData$is_anomaly == 1 & completeData$predicted_anomaly == 0
+                                 & (completeData$conf_high < completeData$value | completeData$conf_low > completeData$value),]
+
+ blockData = completeData[completeData$timestamp <= 99000,]
+ #plotData = blockData[blockData$timestamp <= 27000 & blockData$timestamp >= 26000,]
+ plotData = blockData[blockData$timestamp <= 66000 & blockData$timestamp >= 65000,]
+
+ fpData = plotData[plotData$is_anomaly == 0 & plotData$predicted_anomaly == 1,]
+ fnData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 0,]
+ tpData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 1,]
+ anomaly_points = plotData[plotData$is_anomaly == 1,]
+ periodic_points = plotData[plotData$isPeriodic == 1,]
+
+ periodic_anomaly = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 0
+                                 & (plotData$conf_high < plotData$value | plotData$conf_low > plotData$value),]
 
 
-blockData = completeData[completeData$timestamp <= 99000,]
-#plotData = blockData[blockData$timestamp <= 27000 & blockData$timestamp >= 26000,]
-plotData = blockData[blockData$timestamp <= 24000 & blockData$timestamp >= 23000,]
+ #blockData$ma_value = ma(blockData$value, order=15)
 
-fpData = plotData[plotData$is_anomaly == 0 & plotData$predicted_anomaly == 1,]
-fnData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 0,]
-tpData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 1,]
-anomaly_points = plotData[plotData$is_anomaly == 1,]
+ ggplot() +
+   geom_line(data = plotData, aes(x = timestamp, y = value, colour = "Original")) +
+   geom_line(data = plotData, aes(x = timestamp, y = conf_low, colour = "conf_low_exp"))  +
+   geom_line(data = plotData, aes(x = timestamp, y = conf_high, colour = "conf_high_exp"))  +
+   geom_line(data = plotData, aes(x = timestamp, y = predicted_value, colour = "predicted_value"))  +
+   #geom_line(data = plotData, aes(x = timestamp, y = calculation_value, colour = "calculation_value"))  +
+   geom_point(data = fnData, aes(x = timestamp, y = value, colour = "fn")) +
+   geom_point(data = periodic_points, aes(x = timestamp, y = value, colour = "periodic")) +
+   #geom_point(data = periodic_anomaly, aes(x = timestamp, y = value, colour = "periodic false")) +
+   #geom_point(data = fpData, aes(x = timestamp, y = value, colour = "fp")) +
+   #geom_point(data = tpData, aes(x = timestamp, y = value, colour = "tp")) +
+   ylab('Count')
 
-#blockData$ma_value = ma(blockData$value, order=15)
-
-ggplot() +
-  geom_line(data = plotData, aes(x = timestamp, y = value, colour = "Original")) +
-  geom_line(data = plotData, aes(x = timestamp, y = conf_low, colour = "conf_low_exp"))  +
-  geom_line(data = plotData, aes(x = timestamp, y = conf_high, colour = "conf_high_exp"))  +
-  geom_line(data = plotData, aes(x = timestamp, y = predicted_value, colour = "predicted_value"))  +
-  #geom_line(data = plotData, aes(x = timestamp, y = calculation_value, colour = "calculation_value"))  +
-  geom_point(data = fnData, aes(x = timestamp, y = value, colour = "fn")) + 
-  #geom_point(data = fpData, aes(x = timestamp, y = value, colour = "fp")) + 
-  geom_point(data = tpData, aes(x = timestamp, y = value, colour = "tp")) + 
-  ylab('Count')
-
-write.csv(resultSet, "kalman_result_6.csv")
+#write.csv(resultSet, "kalman_periodic_result_2.csv")
 
 

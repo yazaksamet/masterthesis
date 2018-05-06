@@ -1,0 +1,11 @@
+anomaly direction; positive, negative.
+
+anomaly types: https://anomaly.io/anomaly-detection-twitter-r/
+
+detecting seasonality: https://anomaly.io/detect-seasonality-using-fourier-transform-r/
+
+global/normal anomaly
+
+Global/Local: At Twitter, we observe distinct seasonal patterns in most of the time series we monitor in production. Furthermore, we monitor multiple modes in a given time period. The seasonal nature can be ascribed to a multitude of reasons such as different user behavior across different geographies. Additionally, over longer periods of time, we observe an underlying trend. This can be explained, in part, by organic growth. As the figure below shows, global anomalies typically extend above or below expected seasonality and are therefore not subject to seasonality and underlying trend. On the other hand, local anomalies, or anomalies which occur inside seasonal patterns, are masked and thus are much more difficult to detect in a robust fashion. 
+
+Positive/Negative: An anomaly can be positive or negative. An example of a positive anomaly is a point-in-time increase in number of Tweets during the Super Bowl. An example of a negative anomaly is a point-in-time decrease in QPS (queries per second). Robust detection of positive anomalies serves a key role in efficient capacity planning. Detection of negative anomalies helps discover potential hardware and data collection issues.

@@ -1,0 +1,3 @@
+Kalman Filter ile yaptýðýmýz anomaly detection point anomaly kayýtlarý için iyi sonuçlar verdi. Ancak bu yöntem frequency based anomaly kayýtlarýný bulamýyor. Bunun için farklý bir method ile kalman filter ý birleþtirebiliriz. 
+
+Yöntem 1: frequency belli aralýklarla tekrar ettiði için. Anomaly olmayan bir kaydýn, tekrar eden gruplarla uzaklýðý benzer olmalý. Yani gruptaki en yüksek deðerli kayýt, diðer gruplardaki en yüksek deðerlere yakýn olmalý. Ýþlediðimiz window içindeki kayýtlarý kendi içinde birden fazla gruba ayýrýp, her bir grup arasýndaki farký alýrsak, bu fark anomaly olmayan kayýtlar için benzer olmalý. Benzer deðilse, kaydý anomaly olarak iþaretleyebiliriz.

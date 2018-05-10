@@ -2,7 +2,7 @@
 library(AnomalyDetection)
 completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard.csv", header=TRUE, sep=",")
 
-completeData = completeData[completeData$timestamp <= 64200 & completeData$timestamp >= 63200,]
+#completeData = completeData[completeData$timestamp <= 64200 & completeData$timestamp >= 63200,]
 
 completeData$timestampX = strptime(c("1.1.2000 00:00"), format = "%d.%m.%Y %H:%M", tz = "CET") + completeData$timestamp * 60 * 60
 

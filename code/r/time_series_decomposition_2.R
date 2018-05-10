@@ -120,7 +120,7 @@ completeData$isProcessed = 0
 
 completeData$trend = runmed(completeData$value, 23)
 
-#completeData = completeData[completeData$timestamp <= 9000 & completeData$timestamp > 8000,]
+completeData = completeData[completeData$timestamp <= 4400 & completeData$timestamp > 4000,]
 
 windowSize = 24*4
 counter = completeData[1, "timestamp"] - 1

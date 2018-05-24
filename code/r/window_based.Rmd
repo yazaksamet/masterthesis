@@ -46,6 +46,9 @@ setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
 completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard.csv", header=TRUE, sep=",")
 completeData = cbind(completeData, predicted_value = 0, conf_low = 0, conf_high = 0, predicted_anomaly = 0, calculation_value = completeData$value)
 
+completeData = completeData[completeData$timestamp <= 66000 & completeData$timestamp > 65000,]
+completeData$timestamp = completeData$timestamp - 65000
+
 ```
 
 
@@ -111,7 +114,7 @@ for (windowSize in windowSizeStart:windowSizeEnd) {
       
       completeData[i,"predicted_anomaly"] = predictedAnomaly
       
-      if (completeData[i,"is_anomaly"] == 1) {
+      if (completeData[i,"predicted_anomaly"] == 1) {
         #completeData[i,"predicted_value"] = completeData[i,"value"]
         lowerDistance = abs(completeData[i,"value"] - completeData[i,"conf_low"])
         upperDistance = abs(completeData[i,"value"] - completeData[i,"conf_high"])
@@ -225,6 +228,9 @@ lines(data.frame(blockData$timestamp - 3000, blockData$conf_low), col="grey", pc
 lines(data.frame(blockData$timestamp - 3000, blockData$conf_high), col="grey")
 
 legend("topleft", c("True Positive", "False Negative", "False Positive", "Confidence Interval", "Standardized Data"), col = c("green", "yellow", "red", "grey", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1,1,1,1), pch=c(17,17,17,20,20))
+
+plotData = blockData
+anomaly_points = plotData[plotData$predicted_anomaly == 1,]
 
 ```
 

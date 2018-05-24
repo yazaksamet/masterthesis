@@ -3,7 +3,7 @@ windowSizeEnd = 200
 
 measureVariance = 0.001
 variance = 1e-7
-intervalMultiplier = 80 # it is used to adjust model success
+intervalMultiplier = 70 # it is used to adjust model success
 
 minConf = 5
 maxConf = 15
@@ -20,6 +20,9 @@ setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
 completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard_periodic.csv", header=TRUE, sep=",")
 completeData = cbind(completeData, predicted_value = 0, conf_low = 0, conf_high = 0, predicted_anomaly = 0)
 completeData$calculation_value = completeData$value
+
+completeData = completeData[completeData$timestamp <= 66000 & completeData$timestamp > 65000,]
+completeData$timestamp = completeData$timestamp - 65000
 
 getConfidenceInterval <- function(windowSize, windowRecords) {
   predictionSize = windowSize
@@ -119,38 +122,38 @@ for (windowSize in seq(windowSizeStart, windowSizeEnd, 50)) {
 }
 
 
- recall = (tp / (tp + fn))
- precision = tp / (tp + fp)
- f1 = 2 * (precision * recall) / (precision + recall)
+# recall = (tp / (tp + fn))
+# precision = tp / (tp + fp)
+# f1 = 2 * (precision * recall) / (precision + recall)
 
- periodic_anomaly = completeData[completeData$is_anomaly == 1 & completeData$predicted_anomaly == 0
-                                 & (completeData$conf_high < completeData$value | completeData$conf_low > completeData$value),]
+# periodic_anomaly = completeData[completeData$is_anomaly == 1 & completeData$predicted_anomaly == 0
+#                                 & (completeData$conf_high < completeData$value | completeData$conf_low > completeData$value),]
 
  blockData = completeData[completeData$timestamp <= 99000,]
  #plotData = blockData[blockData$timestamp <= 27000 & blockData$timestamp >= 26000,]
- plotData = blockData[blockData$timestamp <= 66000 & blockData$timestamp >= 65000,]
+ plotData = blockData#[blockData$timestamp <= 66000 & blockData$timestamp >= 65000,]
 
- fpData = plotData[plotData$is_anomaly == 0 & plotData$predicted_anomaly == 1,]
- fnData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 0,]
- tpData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 1,]
- anomaly_points = plotData[plotData$is_anomaly == 1,]
- periodic_points = plotData[plotData$isPeriodic == 1,]
+ #fpData = plotData[plotData$is_anomaly == 0 & plotData$predicted_anomaly == 1,]
+ #fnData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 0,]
+ #tpData = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 1,]
+ anomaly_points = plotData[plotData$predicted_anomaly == 1,]
+ #periodic_points = plotData[plotData$isPeriodic == 1,]
 
- periodic_anomaly = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 0
-                                 & (plotData$conf_high < plotData$value | plotData$conf_low > plotData$value),]
+ #periodic_anomaly = plotData[plotData$is_anomaly == 1 & plotData$predicted_anomaly == 0
+#                                 & (plotData$conf_high < plotData$value | plotData$conf_low > plotData$value),]
 
 
  #blockData$ma_value = ma(blockData$value, order=15)
 
  ggplot() +
    geom_line(data = plotData, aes(x = timestamp, y = value, colour = "Original")) +
-   geom_line(data = plotData, aes(x = timestamp, y = conf_low, colour = "conf_low_exp"))  +
-   geom_line(data = plotData, aes(x = timestamp, y = conf_high, colour = "conf_high_exp"))  +
-   geom_line(data = plotData, aes(x = timestamp, y = predicted_value, colour = "predicted_value"))  +
+   #geom_line(data = plotData, aes(x = timestamp, y = conf_low, colour = "conf_low_exp"))  +
+   #geom_line(data = plotData, aes(x = timestamp, y = conf_high, colour = "conf_high_exp"))  +
+   #geom_line(data = plotData, aes(x = timestamp, y = predicted_value, colour = "predicted_value"))  +
    #geom_line(data = plotData, aes(x = timestamp, y = calculation_value, colour = "calculation_value"))  +
-   geom_point(data = fnData, aes(x = timestamp, y = value, colour = "fn")) +
-   geom_point(data = periodic_points, aes(x = timestamp, y = value, colour = "periodic")) +
-   #geom_point(data = periodic_anomaly, aes(x = timestamp, y = value, colour = "periodic false")) +
+   #geom_point(data = fnData, aes(x = timestamp, y = value, colour = "fn")) +
+   #geom_point(data = periodic_points, aes(x = timestamp, y = value, colour = "periodic")) +
+   geom_point(data = anomaly_points, aes(x = timestamp, y = value, colour = "anomaly")) +
    #geom_point(data = fpData, aes(x = timestamp, y = value, colour = "fp")) +
    #geom_point(data = tpData, aes(x = timestamp, y = value, colour = "tp")) +
    ylab('Count')

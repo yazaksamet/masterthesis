@@ -1,18 +1,15 @@
-
+setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
 library(AnomalyDetection)
 completeData = read.csv(file="..\\..\\data\\workspace\\real_full_standard.csv", header=TRUE, sep=",")
 
-#completeData = completeData[completeData$timestamp <= 64200 & completeData$timestamp >= 63200,]
+completeData = completeData[completeData$timestamp <= 66000 & completeData$timestamp >= 65000,]
 
 completeData$timestampX = strptime(c("1.1.2000 00:00"), format = "%d.%m.%Y %H:%M", tz = "CET") + completeData$timestamp * 60 * 60
 
 testData =data.frame(completeData$timestampX, completeData$value)
 colnames(testData) <- c("timestamp", "count")
 
-res = AnomalyDetectionTs(raw_data, plot=TRUE)
-res$plot
-
-res = AnomalyDetectionTs(testData, max_anoms=0.3, direction='both', plot=TRUE)
+res = AnomalyDetectionTs(testData, direction='both', plot=TRUE)
 res$plot
 
 completeData$twitterRes = 0

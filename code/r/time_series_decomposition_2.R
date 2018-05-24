@@ -3,6 +3,7 @@ library(stats)
 library(TSA)
 library(FBN)
 library(robustbase)
+library(ggplot2)
 
 getSeasonalityValue <- function(windowRecords) {
   p = periodogram(windowRecords, plot=FALSE)
@@ -91,14 +92,14 @@ getAnomalyRecords <- function(blockData) {
 }
 
 plotBlock <- function(blockData) {
-  anom = blockData[blockData$is_anomaly == 0 & blockData$predicted_anomaly == 1,]
+  anom = blockData[blockData$predicted_anomaly == 1,]
   
   ggplot() +
     geom_line(data = blockData, aes(x = timestamp, y = value, colour = "Original")) +
-    geom_line(data = blockData, aes(x = timestamp, y = high, colour = "high")) +
-    geom_line(data = blockData, aes(x = timestamp, y = low, colour = "low")) +
+    #geom_line(data = blockData, aes(x = timestamp, y = high, colour = "high")) +
+    #geom_line(data = blockData, aes(x = timestamp, y = low, colour = "low")) +
     #geom_line(data = blockData, aes(x = timestamp, y = rm_random, colour = "rm_random")) +
-    geom_line(data = blockData, aes(x = timestamp, y = random, colour = "random")) +
+    #geom_line(data = blockData, aes(x = timestamp, y = random, colour = "random")) +
     #geom_line(data = blockData, aes(x = timestamp, y = trend, colour = "trend")) +
     #geom_line(data = blockData, aes(x = timestamp, y = max, colour = "max")) +
     
@@ -120,9 +121,9 @@ completeData$isProcessed = 0
 
 completeData$trend = runmed(completeData$value, 23)
 
-completeData = completeData[completeData$timestamp <= 4400 & completeData$timestamp > 4000,]
+completeData = completeData[completeData$timestamp <= 66000 & completeData$timestamp > 65000,]
 
-windowSize = 24*4
+windowSize = 24*3
 counter = completeData[1, "timestamp"] - 1
 endIndex = (counter+windowSize)
 blockCounter = 1

@@ -69,6 +69,9 @@ completeData = cbind(completeData, predicted_value = 0,
 completeData$ma_value = ma(completeData$value, order=movingAverageNumber)
 completeData$calculation_value = completeData$value
 
+completeData = completeData[completeData$timestamp <= 66000 & completeData$timestamp > 65000,]
+completeData$timestamp = completeData$timestamp - 65000
+
 ```
 
 
@@ -223,14 +226,14 @@ blockData = completeData[completeData$timestamp <= 25000,]
 plotData = blockData[blockData$timestamp <= 25000 & blockData$timestamp >= 9000,]
 
 fpData = blockData[blockData$is_anomaly == 1 & blockData$predicted_anomaly == 0,]
-anomaly_points = plotData[plotData$is_anomaly == 1,]
+anomaly_points = plotData[plotData$predicted_anomaly == 1,]
 
 #blockData$ma_value = ma(blockData$value, order=15)
 
 ggplot() +
   geom_line(data = plotData, aes(x = timestamp, y = value, colour = "Original")) +
-  geom_line(data = plotData, aes(x = timestamp, y = conf_low, colour = "conf_low_exp"))  +
-  geom_line(data = plotData, aes(x = timestamp, y = conf_high, colour = "conf_high_exp"))  +
+  #geom_line(data = plotData, aes(x = timestamp, y = conf_low, colour = "conf_low_exp"))  +
+  #geom_line(data = plotData, aes(x = timestamp, y = conf_high, colour = "conf_high_exp"))  +
   #geom_line(data = plotData, aes(x = timestamp, y = predicted_value, colour = "predicted_value"))  +
   #geom_line(data = plotData, aes(x = timestamp, y = calculation_value, colour = "calculation_value"))  +
   geom_point(data = anomaly_points, aes(x = timestamp, y = value, colour = "anomaly")) + 

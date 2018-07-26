@@ -1,3 +1,13 @@
+
+#install.packages("ggplot2")
+#install.packages("forecast")
+#install.packages("stats")
+#install.packages("TSA")
+#install.packages("FBN")
+#install.packages("robustbase")
+
+setwd("C:/Users/sametyazak/Desktop/ynwa/bau/2017 - Thesis/code/r/")
+
 library(forecast)
 library(stats)
 library(TSA)
@@ -96,10 +106,10 @@ plotBlock <- function(blockData) {
   
   ggplot() +
     geom_line(data = blockData, aes(x = timestamp, y = value, colour = "Original")) +
-    #geom_line(data = blockData, aes(x = timestamp, y = high, colour = "high")) +
-    #geom_line(data = blockData, aes(x = timestamp, y = low, colour = "low")) +
+    geom_line(data = blockData, aes(x = timestamp, y = high, colour = "high")) +
+    geom_line(data = blockData, aes(x = timestamp, y = low, colour = "low")) +
     #geom_line(data = blockData, aes(x = timestamp, y = rm_random, colour = "rm_random")) +
-    #geom_line(data = blockData, aes(x = timestamp, y = random, colour = "random")) +
+    geom_line(data = blockData, aes(x = timestamp, y = random, colour = "random")) +
     #geom_line(data = blockData, aes(x = timestamp, y = trend, colour = "trend")) +
     #geom_line(data = blockData, aes(x = timestamp, y = max, colour = "max")) +
     

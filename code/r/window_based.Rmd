@@ -230,7 +230,9 @@ lines(data.frame(blockData$timestamp - 3000, blockData$conf_high), col="grey")
 legend("topleft", c("True Positive", "False Negative", "False Positive", "Confidence Interval", "Standardized Data"), col = c("green", "yellow", "red", "grey", "black"), text.col = "black", bg = "gray90", cex = 0.7, lty = c(1,1,1,1,1), pch=c(17,17,17,20,20))
 
 plotData = blockData
-anomaly_points = plotData[plotData$predicted_anomaly == 1,]
+plotData[plotData$timestamp > 630, "predicted_anomaly"] = 0
+
+anomaly_points = plotData[plotData$is_anomaly == 1,]
 
 ```
 

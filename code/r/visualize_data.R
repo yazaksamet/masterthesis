@@ -10,8 +10,9 @@ library(ggplot2)
 completeData = read.csv(file="..\\..\\data\\workspace\\synthetic_full_standard.csv", header=TRUE, sep=",")
 periodLength = 0
 
-blockData = completeData[completeData$file_number == 36,]
+blockData = completeData[completeData$file_number == 1,]
 anom = blockData[blockData$is_anomaly == 1,]
+
 
 if (periodLength > 0) {
   priodPoints = data.frame(seq(blockData[1,"timestamp"], blockData[dim(blockData)[1],"timestamp"], by=periodLength*3600));

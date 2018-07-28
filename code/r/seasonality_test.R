@@ -16,10 +16,10 @@ source("seasonality.r")
 completeData = read.csv(file="..\\..\\data\\workspace\\synthetic_full_standard.csv", header=TRUE, sep=",")
 seasonalityResults = data.frame()
 
-blockData = completeData[completeData$file_number == 21,]
+blockData = completeData[completeData$file_number == 9,]
 
 #stl decomposition
-stlRes = stl(ts(blockData$value, frequency = 317), s.window = "periodic", robust = TRUE)
+stlRes = stl(ts(blockData$value, frequency = 189), s.window = "periodic", robust = TRUE)
 plot(stlRes)
 
 #decompose decomposition

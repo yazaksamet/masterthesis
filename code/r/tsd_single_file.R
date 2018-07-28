@@ -22,7 +22,7 @@ source("seasonality.r")
 tempFrame = data.frame()
 fileResults = data.frame()
 
-for (i in 1:100) {
+for (i in 99:99) {
   print(i)
   completeData$predicted_anomaly = 0
   completeData$low = 0
@@ -73,4 +73,4 @@ fileResults$precision = fileResults$tp / (fileResults$tp+fileResults$fp)
 fileResults$f1Score = 2 * (fileResults$precision*fileResults$recall) / (fileResults$precision+fileResults$recall)
 
 
-#plotBlock(tempFrame)
+plotBlock(tempFrame)

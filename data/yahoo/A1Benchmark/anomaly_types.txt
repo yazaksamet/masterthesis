@@ -1,0 +1,69 @@
+A1 Benchmark
+
+real_1.csv - point
+real_2.csv - point
+real_3.csv - contextual (), point
+real_4.csv - point
+real_5.csv - point
+real_6.csv - point
+real_7.csv - collective, point
+real_8.csv - point
+real_9.csv - contextual, point
+real_10.csv - point
+real_11.csv - point
+real_12.csv - point
+real_13.csv - contextual
+real_14.csv - contextual (point de olabilir)
+real_15.csv - contextual
+real_16.csv - point (contextual da olabilir)
+real_17.csv - collective, point
+real_18.csv - contextual
+real_19.csv - collective
+real_20.csv - collective, point, contextual
+real_21.csv - contextual (point de olabilir)
+real_22.csv - point, collective
+real_23.csv - point
+real_24.csv - point
+real_25.csv - point, collective
+real_26.csv - collective
+real_27.csv - contextual (point de olabilir)
+real_28.csv - contextual, collective
+real_29.csv - contextual (point de olabilir)
+real_30.csv - contextual, point
+real_31.csv - collective, contextual
+real_32.csv - collective, point
+real_33.csv - point
+real_34.csv - collective
+real_35.csv - yok
+real_36.csv - contextual (point de olabilir)
+real_37.csv - contextual, point
+real_38.csv - contextual
+real_39.csv - contextual (point de olabilir)
+real_40.csv - collective, contextual
+real_41.csv - point
+real_42.csv - contextual (collective de olabilir)
+real_43.csv - point, collective
+real_44.csv - point, contextual
+real_45.csv - point
+real_46.csv - collective, contextual
+real_47.csv - contextual
+real_48.csv - collective
+real_49.csv - contextual
+real_50.csv - point
+real_51.csv - contextual
+real_52.csv - point, contextual
+real_53.csv - point
+real_54.csv - contextual
+real_55.csv - contextual
+real_56.csv - contextual
+real_57.csv - contextual
+real_58.csv - collective (point de olabilir)
+real_59.csv - yok
+real_60.csv - contextual
+real_61.csv - collective
+real_62.csv - point
+real_63.csv - point
+real_64.csv - yok
+real_65.csv - contextual
+real_66.csv - point
+real_67.csv - point
